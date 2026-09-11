@@ -49,13 +49,81 @@
     <Compile Include="Assets\ASJ\Scripts\ASJ\ASJPinchGrab.cs" />
     <Compile Include="Assets\ASJ\Scripts\ASJ\ASJNative.cs" />
     <Compile Include="Assets\ASJ\Scripts\ASJ\ASJHandJointTracker.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Tutorial\Custom Graph\FaceMeshLegacy.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Pose Landmark Detection\PoseLandmarkDetectionConfigWindow.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSourceProvider.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Hand Landmark Detection\HandLandmarkDetectionConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSource\ImageSourceType.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\WaitForResult.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\InferenceMode.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Pose Landmark Detection\PoseLandmarkerRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\TaskApiRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\MediaPipeVideoConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSource\StaticImageSource.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\UI\Scripts\SolutionMenu.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\External\FontAwesome\UnicodeInlineText.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\UI\Scripts\Modal.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Object Detection\ObjectDetectionConfigWindows.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Image Segmentation\ImageSegmentationConfigWindow.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageReadMode.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Image Segmentation\ImageSegmenterRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\AssetLoader.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Detection\FaceDetectionConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\MediaPipeVideoSolution.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\Holistic\HolisticTrackingConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Landmark Detection\FaceLandmarkerRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSource\VideoSource.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSource\ImageSource.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Landmark Detection\FaceLandmarkDetectionConfigWindow.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Tutorial\Tasks\FaceLandmarkerRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\Bootstrap.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\UI\Scripts\ModalButton.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Detection\FaceDetectorRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Object Detection\ObjectDetectorRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\GraphRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\LegacySolutionRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\VisionTaskApiRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\AppSettings.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSource\WebCamSource.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Image Segmentation\ImageSegmentationConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\Holistic\HolisticTrackingSolution.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\UI\Scripts\AutoFit.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\RunningMode.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\Screen.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Hand Landmark Detection\HandLandmarkDetectionConfigWindow.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\UI\Scripts\ImageSourceConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Hand Landmark Detection\HandLandmarkerRunner.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\Holistic\HolisticTrackingGraph.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Object Detection\ObjectDetectionConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Tutorial\Hello World\HelloWorld.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\MediaPipeVideoGraph.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\UI\Scripts\ModalContents.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Pose Landmark Detection\PoseLandmarkDetectionConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Landmark Detection\FaceLandmarkDetectionConfig.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Detection\FaceDetectionConfigWindow.cs" />
+    <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\EnumExtension.cs" />
+    <None Include="Packages\com.github.homuler.mediapipe\PackageResources\Shaders\OverlayMask.shader" />
     <None Include="Assets\ASJ\StreamingAssets\ASJ\PUT_HP60C_CONFIG_HERE.txt" />
+    <None Include="Packages\com.github.homuler.mediapipe\package.json" />
     <None Include="Assets\StreamingAssets\ASJ\hp60c_v2_00_20230704_configEncrypt.json" />
+    <None Include="Assets\MediaPipeUnity\Tutorial\Custom Graph\face_mesh_desktop_live.txt" />
     <None Include="Assets\ASJ\Shaders\ASJ\DepthPreview.shader" />
+    <None Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\official_hand_tracking_demo_opengles.txt" />
+    <None Include="Packages\com.github.homuler.mediapipe\PackageResources\Shaders\Convergence Shader.shader" />
     <None Include="Assets\ASJ\Shaders\ASJ\PointCloud.shader" />
+    <None Include="Packages\com.github.homuler.mediapipe\PackageResources\Shaders\UnmaskShader.shader" />
     <None Include="Assets\ASJ\Plugins\x86_64\PUT_VENDOR_DLLS_HERE.txt" />
+    <None Include="Assets\MediaPipeUnity\Tutorial\Custom Graph\face_mesh_desktop_live_gpu.txt" />
+    <None Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\Holistic\holistic_cpu.txt" />
+    <None Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\official_hand_tracking_demo_gpu.txt" />
+    <None Include="Packages\com.github.homuler.mediapipe\PackageResources\Shaders\MaskShader.shader" />
+    <None Include="Packages\com.github.homuler.mediapipe\PackageResources\MediaPipe\handedness.txt" />
+    <None Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\official_hand_tracking_demo_cpu.txt" />
     <None Include="Assets\ASJ\StreamingAssets\ASJ\hp60c_v2_00_20230704_configEncrypt.json" />
+    <None Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\Holistic\holistic_opengles.txt" />
     <None Include="Assets\ASJ\Shaders\ASJ\JointSphere.shader" />
+    <None Include="Packages\com.github.homuler.mediapipe\PackageResources\MediaPipe\ssdlite_object_detection_labelmap.txt" />
+    <None Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\Holistic\holistic_gpu.txt" />
     <Reference Include="UnityEngine">
       <HintPath>D:\UnityEditor\2021.3.45f2\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -304,6 +372,12 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
       <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>D:\dev\Unity\ASJCamera\Packages\com.github.homuler.mediapipe\Runtime\Plugins\Protobuf\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>D:\dev\Unity\ASJCamera\Packages\com.github.homuler.mediapipe\Runtime\Plugins\Protobuf\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>D:\UnityEditor\2021.3.45f2\Editor\Data\NetStandard\ref\2.1.0\netstandard.dll</HintPath>
@@ -772,6 +846,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Mediapipe.Runtime.csproj">
+      <Project>{345b46d6-07b3-1b9f-f941-2f34b237d655}</Project>
+      <Name>Mediapipe.Runtime</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

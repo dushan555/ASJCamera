@@ -323,6 +323,12 @@
     <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
       <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>D:\dev\Unity\ASJCamera\Packages\com.github.homuler.mediapipe\Runtime\Plugins\Protobuf\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>D:\dev\Unity\ASJCamera\Packages\com.github.homuler.mediapipe\Runtime\Plugins\Protobuf\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</HintPath>
     </Reference>
@@ -811,6 +817,10 @@
     <ProjectReference Include="Assembly-CSharp.csproj">
       <Project>{72c5faca-ddc9-1237-068b-488e574f8330}</Project>
       <Name>Assembly-CSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="Mediapipe.Runtime.csproj">
+      <Project>{345b46d6-07b3-1b9f-f941-2f34b237d655}</Project>
+      <Name>Mediapipe.Runtime</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
