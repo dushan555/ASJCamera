@@ -299,32 +299,32 @@
     <Reference Include="UnityEditor.WindowsStandalone.Extensions">
       <HintPath>D:\UnityEditor\2021.3.45f2\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.VisualScripting.IonicZip">
-      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Editor\VisualScripting.Core\Dependencies\DotNetZip\Unity.VisualScripting.IonicZip.dll</HintPath>
-    </Reference>
-    <Reference Include="log4netPlastic">
-      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.collab-proxy@2.5.2\Lib\Editor\PlasticSCM\log4netPlastic.dll</HintPath>
-    </Reference>
-    <Reference Include="unityplastic">
-      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.collab-proxy@2.5.2\Lib\Editor\PlasticSCM\unityplastic.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Plastic.Newtonsoft.Json">
       <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.collab-proxy@2.5.2\Lib\Editor\PlasticSCM\Unity.Plastic.Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.VisualScripting.YamlDotNet">
-      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Editor\VisualScripting.Core\Dependencies\YamlDotNet\Unity.VisualScripting.YamlDotNet.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Plastic.Antlr3.Runtime">
       <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.collab-proxy@2.5.2\Lib\Editor\PlasticSCM\Unity.Plastic.Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.VisualScripting.YamlDotNet">
+      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Editor\VisualScripting.Core\Dependencies\YamlDotNet\Unity.VisualScripting.YamlDotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>D:\dev\Unity\ASJCamera\Packages\com.github.homuler.mediapipe\Runtime\Plugins\Protobuf\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.IonicZip">
+      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Editor\VisualScripting.Core\Dependencies\DotNetZip\Unity.VisualScripting.IonicZip.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.VisualScripting.TextureAssets">
       <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Editor\VisualScripting.Core\EditorAssetResources\Unity.VisualScripting.TextureAssets.dll</HintPath>
+    </Reference>
+    <Reference Include="log4netPlastic">
+      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.collab-proxy@2.5.2\Lib\Editor\PlasticSCM\log4netPlastic.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
       <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.visualscripting@1.9.4\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Google.Protobuf">
-      <HintPath>D:\dev\Unity\ASJCamera\Packages\com.github.homuler.mediapipe\Runtime\Plugins\Protobuf\Google.Protobuf.dll</HintPath>
+    <Reference Include="unityplastic">
+      <HintPath>D:\dev\Unity\ASJCamera\Library\PackageCache\com.unity.collab-proxy@2.5.2\Lib\Editor\PlasticSCM\unityplastic.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>D:\dev\Unity\ASJCamera\Packages\com.github.homuler.mediapipe\Runtime\Plugins\Protobuf\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
