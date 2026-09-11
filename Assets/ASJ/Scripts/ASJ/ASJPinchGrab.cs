@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -36,6 +37,8 @@ namespace ASJ
         Quaternion handRotAtGrab, targetRotAtGrab;
         int owner = -1;
 
+        private GameObject tipObj;
+        
         void OnEnable()
         {
             if (!tracker) tracker = FindObjectOfType<ASJHandJointTracker>();
@@ -72,6 +75,19 @@ namespace ASJ
                 if(Vector3.Distance(c.ClosestPoint(position),position)<=grabDistance) return true;
             }
             return !hasCollider && Vector3.Distance(position,target.position)<=grabDistance;
+        }
+
+        private void Start()
+        {
+            tipObj = target.Find("tip").gameObject;
+        }
+
+        private void Update()
+        {
+            if (tipObj)
+            {
+                tipObj.SetActive(IsHolding);
+            }
         }
 
         void LateUpdate()
