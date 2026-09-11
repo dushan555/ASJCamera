@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 
 namespace ASJ
 {
@@ -9,6 +10,10 @@ namespace ASJ
     {
         public ASJHandJointTracker tracker;
         public Transform target;
+        [Tooltip("Mirror the RGB/hand overlay and the 3D scene together. Tracking and grabbing remain in the same world space.")]
+        public bool mirrorHorizontal;
+        [Tooltip("3D scene camera to mirror. Uses Main Camera when unassigned.")]
+        public Camera sceneCamera;
         [Tooltip("Distance in the hand preview's Unity units.")]
         public float grabDistance = .08f;
         [Tooltip("Thumb/index distance divided by palm width.")]
@@ -36,6 +41,11 @@ namespace ASJ
         Vector3 handAtGrab, targetAtGrab;
         Quaternion handRotAtGrab, targetRotAtGrab;
         int owner = -1;
+        Transform mirroredPreview;
+        Vector3 previewScale;
+        Camera renderingCamera;
+        Matrix4x4 savedProjection;
+        bool savedInvertCulling, restoreAutomaticProjection;
 
         private GameObject tipObj;
         
@@ -46,6 +56,14 @@ namespace ASJ
             colliders = target.GetComponentsInChildren<Collider>();
             body = target.GetComponent<Rigidbody>();
             for(int i=0;i<2;i++) hands[i] = new HandState();
+            Camera.onPreCull -= BeginSceneMirror;
+            Camera.onPreCull += BeginSceneMirror;
+            Camera.onPostRender -= EndSceneMirror;
+            Camera.onPostRender += EndSceneMirror;
+            RenderPipelineManager.beginCameraRendering -= BeginSceneMirrorSrp;
+            RenderPipelineManager.beginCameraRendering += BeginSceneMirrorSrp;
+            RenderPipelineManager.endCameraRendering -= EndSceneMirrorSrp;
+            RenderPipelineManager.endCameraRendering += EndSceneMirrorSrp;
         }
 
         bool Sample(int slot, out Vector3 position, out float ratio)
@@ -79,7 +97,8 @@ namespace ASJ
 
         private void Start()
         {
-            tipObj = target.Find("tip").gameObject;
+            var tip = target ? target.Find("tip") : null;
+            tipObj = tip ? tip.gameObject : null;
         }
 
         private void Update()
@@ -92,6 +111,7 @@ namespace ASJ
 
         void LateUpdate()
         {
+            UpdateMirrorPreview();
             if(!target || !target.gameObject.activeInHierarchy) { Release(); return; }
             float now=Time.unscaledTime;
             bool anyNear=false;
@@ -132,9 +152,11 @@ namespace ASJ
 
                 if(owner==slot)
                 {
-                    Vector3 desired = targetAtGrab + (position - handAtGrab);
                     Quaternion currentHandRot = SamplePalmRotation(slot);
-                    Quaternion desiredRot = currentHandRot * Quaternion.Inverse(handRotAtGrab) * targetRotAtGrab;
+                    Vector3 movement = position - handAtGrab;
+                    Quaternion rotation = currentHandRot * Quaternion.Inverse(handRotAtGrab);
+                    Vector3 desired = targetAtGrab + movement;
+                    Quaternion desiredRot = rotation * targetRotAtGrab;
                     if(body != null)
                     {
                         body.MovePosition(desired);
@@ -198,7 +220,75 @@ namespace ASJ
             onRelease.Invoke();
         }
 
-        void OnDisable() { Release(); }
+        void UpdateMirrorPreview()
+        {
+            Transform preview = tracker && tracker.rgbView ? tracker.rgbView.transform : null;
+            if (mirroredPreview && (!mirrorHorizontal || mirroredPreview != preview))
+            {
+                mirroredPreview.localScale = previewScale;
+                mirroredPreview = null;
+            }
+            if (mirrorHorizontal && preview && !mirroredPreview)
+            {
+                mirroredPreview = preview;
+                previewScale = preview.localScale;
+                // The child RenderTexture overlay flips with RGB, including all 3D objects.
+                preview.localScale = new Vector3(-previewScale.x, previewScale.y, previewScale.z);
+            }
+        }
+
+        void BeginSceneMirror(Camera camera)
+        {
+            if (!mirrorHorizontal || renderingCamera || camera != (sceneCamera ? sceneCamera : Camera.main)) return;
+            renderingCamera = camera;
+            savedProjection = camera.projectionMatrix;
+            camera.ResetProjectionMatrix();
+            restoreAutomaticProjection = camera.projectionMatrix == savedProjection;
+            camera.projectionMatrix = Matrix4x4.Scale(new Vector3(-1, 1, 1)) * savedProjection;
+            savedInvertCulling = GL.invertCulling;
+            GL.invertCulling = !savedInvertCulling;
+        }
+
+        void EndSceneMirror(Camera camera)
+        {
+            if (!renderingCamera || camera != renderingCamera) return;
+            if (restoreAutomaticProjection) camera.ResetProjectionMatrix();
+            else camera.projectionMatrix = savedProjection;
+            GL.invertCulling = savedInvertCulling;
+            renderingCamera = null;
+        }
+
+        void BeginSceneMirrorSrp(ScriptableRenderContext context, Camera camera)
+        {
+            BeginSceneMirror(camera);
+            if (renderingCamera != camera) return;
+            var command = CommandBufferPool.Get("ASJ scene mirror");
+            command.SetInvertCulling(!savedInvertCulling);
+            context.ExecuteCommandBuffer(command);
+            CommandBufferPool.Release(command);
+        }
+
+        void EndSceneMirrorSrp(ScriptableRenderContext context, Camera camera)
+        {
+            if (renderingCamera != camera) return;
+            var command = CommandBufferPool.Get("ASJ restore culling");
+            command.SetInvertCulling(savedInvertCulling);
+            context.ExecuteCommandBuffer(command);
+            CommandBufferPool.Release(command);
+            EndSceneMirror(camera);
+        }
+
+        void OnDisable()
+        {
+            Release();
+            if (mirroredPreview) mirroredPreview.localScale = previewScale;
+            mirroredPreview = null;
+            if (renderingCamera) EndSceneMirror(renderingCamera);
+            Camera.onPreCull -= BeginSceneMirror;
+            Camera.onPostRender -= EndSceneMirror;
+            RenderPipelineManager.beginCameraRendering -= BeginSceneMirrorSrp;
+            RenderPipelineManager.endCameraRendering -= EndSceneMirrorSrp;
+        }
         void OnGUI() { GUI.Label(new Rect(12,36,900,26),"ASJ Grab | "+Status); }
     }
 }
