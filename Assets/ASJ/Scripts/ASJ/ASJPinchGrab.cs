@@ -33,6 +33,7 @@ namespace ASJ
         Rigidbody body;
         bool wasKinematic, usedGravity;
         Vector3 handAtGrab, targetAtGrab;
+        Quaternion handRotAtGrab, targetRotAtGrab;
         int owner = -1;
 
         void OnEnable()
@@ -115,9 +116,19 @@ namespace ASJ
 
                 if(owner==slot)
                 {
-                    Vector3 desired=targetAtGrab+(position-handAtGrab);
-                    // Preserve the acquisition offset; release leaves the object here.
-                    target.position=desired;
+                    Vector3 desired = targetAtGrab + (position - handAtGrab);
+                    Quaternion currentHandRot = SamplePalmRotation(slot);
+                    Quaternion desiredRot = currentHandRot * Quaternion.Inverse(handRotAtGrab) * targetRotAtGrab;
+                    if(body != null)
+                    {
+                        body.MovePosition(desired);
+                        body.MoveRotation(desiredRot);
+                    }
+                    else
+                    {
+                        target.position = desired;
+                        target.rotation = desiredRot;
+                    }
                 }
             }
             Status=IsHolding ? (owner==0?"Left":"Right")+" hand holding - open fingers to release"
@@ -127,17 +138,45 @@ namespace ASJ
         void Grab(int slot,Vector3 position)
         {
             owner=slot; handAtGrab=position; targetAtGrab=target.position;
+            handRotAtGrab=SamplePalmRotation(slot); targetRotAtGrab=target.rotation;
             if(body) { wasKinematic=body.isKinematic; usedGravity=body.useGravity; body.isKinematic=true; body.useGravity=false; }
             GrabCount++;
             Debug.Log("[ASJ Grab] Grabbed target with "+(slot==0?"Left":"Right")+" hand.",this);
             onGrab.Invoke();
         }
 
+        // Build a palm-space rotation from three stable landmarks:
+        //   wrist(0) → index-MCP(5) as the forward axis,
+        //   index-MCP(5) → pinky-MCP(17) as the right axis.
+        Quaternion SamplePalmRotation(int slot)
+        {
+            bool left=slot==0;
+            var wrist=tracker.GetJoint(left,0);
+            var indexMcp=tracker.GetJoint(left,5);
+            var pinkyMcp=tracker.GetJoint(left,17);
+            if(!wrist || !indexMcp || !pinkyMcp) return Quaternion.identity;
+            Vector3 fwd=(indexMcp.position-wrist.position);
+            Vector3 right=(pinkyMcp.position-indexMcp.position);
+            if(fwd.sqrMagnitude<1e-8f || right.sqrMagnitude<1e-8f) return Quaternion.identity;
+            Vector3 up=Vector3.Cross(fwd.normalized,right.normalized);
+            if(up.sqrMagnitude<1e-8f) return Quaternion.identity;
+            return Quaternion.LookRotation(fwd.normalized,up.normalized);
+        }
+
         public void Release()
         {
             if(owner<0) return;
             owner=-1;
-            if(body) { body.isKinematic=wasKinematic; body.useGravity=usedGravity; }
+            if(body)
+            {
+                body.isKinematic = wasKinematic;
+                body.useGravity = usedGravity;
+                if(!body.isKinematic)
+                {
+                    body.velocity = Vector3.zero;
+                    body.angularVelocity = Vector3.zero;
+                }
+            }
             ReleaseCount++;
             Debug.Log("[ASJ Grab] Released target.",this);
             onRelease.Invoke();
