@@ -1,0 +1,1 @@
+build_native.bat will copy ASJUnityBridge.dll and all DLLs from EaiCameraSdk/dlls here.

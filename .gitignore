@@ -1,0 +1,7 @@
+.idea/
+Library/
+Tools/ASJHandTracking/.venv/Lib/site-packages/
+Temp/
+Logs/
+obj/
+UserSettings/

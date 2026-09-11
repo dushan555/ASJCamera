@@ -1,0 +1,1 @@
+build_native.bat will copy hp60c_v2_00_20230704_configEncrypt.json here.
