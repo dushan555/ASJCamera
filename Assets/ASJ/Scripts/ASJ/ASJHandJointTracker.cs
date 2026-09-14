@@ -23,7 +23,11 @@ namespace ASJ
     /// </summary>
     public sealed class ASJHandJointTracker : MonoBehaviour
     {
+        public enum InputSource { ASJ, Webcam }
+        [Tooltip("Select before entering Play mode. ASJ remains the default for existing scenes.")]
+        public InputSource inputSource = InputSource.ASJ;
         public ASJCamera cameraSource;
+        public WebcamRgbSource webcamSource;
         public RawImage rgbView;
         public Shader sphereShader;
         [Range(1, 30)] public int inferenceFps = 15;
@@ -93,13 +97,16 @@ namespace ASJ
         // Reused per-frame to avoid GC alloc on every send.
         byte[] frameBuffer;
         long lastSentTimestamp;
+        long lastWebcamFrame = -1;
 
         void Start()
         {
-            if (!cameraSource) cameraSource = FindObjectOfType<ASJCamera>();
-            if (!cameraSource || !rgbView || !sphereShader)
+            if (inputSource == InputSource.ASJ && !cameraSource) cameraSource = FindObjectOfType<ASJCamera>();
+            if (inputSource == InputSource.Webcam && !webcamSource) webcamSource = FindObjectOfType<WebcamRgbSource>();
+            bool sourceAssigned = inputSource == InputSource.ASJ ? cameraSource != null : webcamSource != null;
+            if (!sourceAssigned || !rgbView || !sphereShader)
             {
-                Status = "Assign cameraSource, rgbView and sphereShader";
+                Status = "Assign the selected camera source, rgbView and sphereShader";
                 Debug.LogError("[ASJ Hand] " + Status);
                 enabled = false;
                 return;
@@ -219,11 +226,22 @@ namespace ASJ
             }
 
             float now = Time.realtimeSinceStartup;
+            bool useWebcam = inputSource == InputSource.Webcam;
+            var texture = useWebcam ? (webcamSource ? webcamSource.RgbTexture : null)
+                : (cameraSource ? cameraSource.RgbTexture : null);
+            bool streaming = useWebcam ? webcamSource && webcamSource.IsStreaming
+                : cameraSource && cameraSource.IsStreaming;
+            if (useWebcam)
+            {
+                rgbView.texture = texture;
+                rgbView.uvRect = new Rect(0, 1, 1, -1);
+                if (!streaming) Status = webcamSource ? webcamSource.Status : "Assign webcamSource";
+            }
 
             // Send a new frame to the worker thread if the rate allows.
-            if (cameraSource && cameraSource.IsStreaming && cameraSource.RgbTexture != null && now >= nextSend)
+            if (streaming && texture != null && now >= nextSend
+                && (!useWebcam || webcamSource.FrameVersion != lastWebcamFrame))
             {
-                var texture = cameraSource.RgbTexture;
                 aspect = (float)texture.width / texture.height;
                 overlayCamera.orthographicSize = 1f / aspect;
                 overlayCamera.aspect = aspect;
@@ -237,6 +255,7 @@ namespace ASJ
                     if (frameBuffer == null || frameBuffer.Length != byteCount)
                         frameBuffer = new byte[byteCount];
                     nativeData.CopyTo(frameBuffer);
+                    if (useWebcam) lastWebcamFrame = webcamSource.FrameVersion;
                     lastSentTimestamp = Math.Max(lastSentTimestamp + 1, (long)(now * 1000));
                     lock (gate)
                     {

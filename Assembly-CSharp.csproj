@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSourceProvider.cs" />
     <Compile Include="Assets\ASJ\Scripts\ASJ\ASJCameraPreview.cs" />
+    <Compile Include="Assets\ASJ\Scripts\ASJ\WebcamRgbSource.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\Holistic\HolisticTrackingSolution.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\UI\Scripts\AutoFit.cs" />
     <Compile Include="Assets\ASJ\Scripts\ASJ\ASJPointCloudRenderer.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\InferenceMode.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Image Segmentation\ImageSegmentationConfigWindow.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\MediaPipeVideoSolution.cs" />
+    <Compile Include="Assets\Code\HandTrakerState.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Detection\FaceDetectorRunner.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\ImageSource\WebCamSource.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Detection\FaceDetectionConfigWindow.cs" />
@@ -102,7 +104,6 @@
     <Compile Include="Assets\MediaPipeUnity\Samples\Common\Scripts\AppSettings.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Legacy\MediaPipe Video\MediaPipeVideoGraph.cs" />
     <Compile Include="Assets\MediaPipeUnity\Samples\Scenes\Face Landmark Detection\FaceLandmarkDetectionConfig.cs" />
-    <Compile Include="Assets\Code\HandTrakerState.cs" />
     <None Include="Packages\com.github.homuler.mediapipe\PackageResources\Shaders\OverlayMask.shader" />
     <None Include="Assets\ASJ\StreamingAssets\ASJ\PUT_HP60C_CONFIG_HERE.txt" />
     <None Include="Packages\com.github.homuler.mediapipe\package.json" />

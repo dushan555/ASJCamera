@@ -44,6 +44,7 @@
     <Compile Include="Assets\ASJ\Editor\ASJGrabVerification.cs" />
     <Compile Include="Assets\ASJ\Editor\ASJHandTrackingSetup.cs" />
     <Compile Include="Assets\ASJ\Editor\ASJGrabSetupOnce.cs" />
+    <Compile Include="Assets\ASJ\Editor\HandCameraInputSetup.cs" />
     <Reference Include="UnityEngine">
       <HintPath>D:\UnityEditor\2021.3.45f2\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

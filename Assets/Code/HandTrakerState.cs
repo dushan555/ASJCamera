@@ -7,6 +7,7 @@ public class HandTrakerState : MonoBehaviour
     
     public UnityEngine.UI.Image tipImage;
     [SerializeField] private ASJCamera cameraSource;
+    [SerializeField] private WebcamRgbSource webcamSource;
     [SerializeField] private ASJHandJointTracker handTracker;
 
     private void Awake()
@@ -22,8 +23,11 @@ public class HandTrakerState : MonoBehaviour
         if (!handTracker) handTracker = FindObjectOfType<ASJHandJointTracker>();
         if (!cameraSource && handTracker) cameraSource = handTracker.cameraSource;
         if (!cameraSource) cameraSource = FindObjectOfType<ASJCamera>();
+        if (handTracker && handTracker.webcamSource) webcamSource = handTracker.webcamSource;
+        if (!webcamSource) webcamSource = FindObjectOfType<WebcamRgbSource>();
 
         if (cameraSource) cameraSource.OnInitialized += RefreshState;
+        if (webcamSource) webcamSource.OnInitialized += RefreshState;
         if (handTracker) handTracker.OnHandsUpdated += OnHandsUpdated;
         RefreshState();
     }
@@ -31,6 +35,7 @@ public class HandTrakerState : MonoBehaviour
     private void OnDisable()
     {
         if (cameraSource) cameraSource.OnInitialized -= RefreshState;
+        if (webcamSource) webcamSource.OnInitialized -= RefreshState;
         if (handTracker) handTracker.OnHandsUpdated -= OnHandsUpdated;
     }
 
@@ -52,13 +57,18 @@ public class HandTrakerState : MonoBehaviour
 
     private void RefreshState()
     {
-        if (!cameraSource || !cameraSource.isActiveAndEnabled || !cameraSource.IsInitialized)
+        bool useWebcam = handTracker && handTracker.inputSource == ASJHandJointTracker.InputSource.Webcam;
+        bool initialized = useWebcam
+            ? webcamSource && webcamSource.isActiveAndEnabled && webcamSource.IsInitialized
+            : cameraSource && cameraSource.isActiveAndEnabled && cameraSource.IsInitialized;
+        if (!initialized)
         {
             SetState(TrackType.Error);
             return;
         }
 
-        bool isTracking = cameraSource.IsStreaming && handTracker &&
+        bool streaming = useWebcam ? webcamSource.IsStreaming : cameraSource.IsStreaming;
+        bool isTracking = streaming && handTracker &&
             handTracker.isActiveAndEnabled && handTracker.TrackedHandCount > 0;
         SetState(isTracking ? TrackType.Playing : TrackType.Waiting);
     }
