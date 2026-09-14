@@ -46,6 +46,7 @@ namespace ASJ
         Camera renderingCamera;
         Matrix4x4 savedProjection;
         bool savedInvertCulling, restoreAutomaticProjection;
+        bool lastBackView, lastForwardMotion;
 
         private GameObject tipObj;
         
@@ -56,6 +57,8 @@ namespace ASJ
             colliders = target.GetComponentsInChildren<Collider>();
             body = target.GetComponent<Rigidbody>();
             for(int i=0;i<2;i++) hands[i] = new HandState();
+            lastBackView = tracker && tracker.backOfHandView;
+            lastForwardMotion = tracker && tracker.estimateForwardMotion;
             Camera.onPreCull -= BeginSceneMirror;
             Camera.onPreCull += BeginSceneMirror;
             Camera.onPostRender -= EndSceneMirror;
@@ -111,6 +114,14 @@ namespace ASJ
 
         void LateUpdate()
         {
+            if (tracker && (lastBackView != tracker.backOfHandView || lastForwardMotion != tracker.estimateForwardMotion))
+            {
+                Release();
+                for (int i = 0; i < 2; i++) hands[i] = new HandState();
+                lastBackView = tracker.backOfHandView;
+                lastForwardMotion = tracker.estimateForwardMotion;
+                return;
+            }
             UpdateMirrorPreview();
             if(!target || !target.gameObject.activeInHierarchy) { Release(); return; }
             float now=Time.unscaledTime;
@@ -122,7 +133,7 @@ namespace ASJ
                 if(!Sample(slot,out position,out ratio))
                 {
                     if(hand.lostSince<0) hand.lostSince=now;
-                    if(owner==slot && now-hand.lostSince>=trackingLossSeconds) Release();
+                    if(owner==slot && ((tracker && tracker.estimateForwardMotion) || now-hand.lostSince>=trackingLossSeconds)) Release();
                     hand.armed=false; hand.eligible=false; hand.closed=false;
                     continue;
                 }

@@ -35,6 +35,13 @@ namespace ASJ
         [Range(0, 30)] public float smoothing = 18;
         public float lostTimeout = .4f;
         public bool drawBones = true;
+        [Header("Skeleton view (configure before Play)")]
+        [Tooltip("Rotate the whole skeleton around the view origin: pose and movement reverse X/Z, while Y stays upright.")]
+        public bool backOfHandView;
+        [Tooltip("Estimate relative forward/back movement from apparent palm size. RGB estimate only, not measured depth.")]
+        public bool estimateForwardMotion;
+        [Min(0)] public float forwardSensitivity = .6f;
+        [Min(0)] public float forwardLimit = .8f;
         public string Status { get; private set; } = "Starting";
         public int TrackedHandCount { get; private set; }
         public float InferenceMilliseconds { get; private set; }
@@ -66,6 +73,8 @@ namespace ASJ
         readonly GameObject[]    handRoots = new GameObject[2];
         readonly LineRenderer[,] lines     = new LineRenderer[2, 21];
         readonly Material[]      materials = new Material[2];
+        readonly Vector3[] sourcePose = new Vector3[21];
+        readonly float[] referencePalmSize = new float[2];
 
         // Worker thread state.
         readonly object gate = new object();
@@ -333,13 +342,28 @@ namespace ASJ
                         var p = landmarks.landmarks[j];
                         float u = (p.x - uv.x) / uv.width;
                         float v = (p.y - uv.y) / uv.height;
-                        targets[slot, j] = new Vector3((u - .5f) * 2, (v - .5f) * 2 / aspect, p.z * 2);
+                        sourcePose[j] = new Vector3((u - .5f) * 2, (v - .5f) * 2 / aspect, p.z * 2);
+                    }
+                    float palmSize = (Vector3.Distance(sourcePose[0], sourcePose[5])
+                        + Vector3.Distance(sourcePose[0], sourcePose[17])
+                        + Vector3.Distance(sourcePose[5], sourcePose[17])) / 3f;
+                    if (!wasVisible || referencePalmSize[slot] <= 0) referencePalmSize[slot] = palmSize;
+                    float forward = estimateForwardMotion
+                        ? HandSkeletonViewMath.RelativeForward(referencePalmSize[slot], palmSize, forwardSensitivity, forwardLimit) : 0;
+                    for (int j = 0; j < 21; j++)
+                    {
+                        Vector3 position = sourcePose[j] + new Vector3(0, 0, forward);
+                        targets[slot, j] = backOfHandView ? HandSkeletonViewMath.BackView(position) : position;
                         if (!wasVisible) joints[slot, j].localPosition = targets[slot, j];
                     }
                 }
             }
 
-            for (int h = 0; h < 2; h++) handRoots[h].SetActive(used[h]);
+            for (int h = 0; h < 2; h++)
+            {
+                handRoots[h].SetActive(used[h]);
+                if (!used[h]) referencePalmSize[h] = 0;
+            }
 
             Status = TrackedHandCount > 0
                 ? $"Tracking {TrackedHandCount} hand(s), {TrackedHandCount * 21} joints, {InferenceMilliseconds:F0} ms"
@@ -473,6 +497,7 @@ namespace ASJ
 
         void OnDisable()
         {
+            referencePalmSize[0] = referencePalmSize[1] = 0;
             foreach (var handRoot in handRoots) if (handRoot) handRoot.SetActive(false);
             if (JointRoot) JointRoot.gameObject.SetActive(false);
             if (overlayObject) overlayObject.SetActive(false);

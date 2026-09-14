@@ -1167,6 +1167,10 @@ MonoBehaviour:
   smoothing: 18
   lostTimeout: 0.4
   drawBones: 1
+  backOfHandView: 1
+  estimateForwardMotion: 1
+  forwardSensitivity: 0.6
+  forwardLimit: 0.8
 --- !u!114 &1865721775
 MonoBehaviour:
   m_ObjectHideFlags: 0
