@@ -28,6 +28,8 @@ namespace ASJ
         public bool DepthIsFloat { get; private set; }
 
         public bool IsStreaming { get; private set; }
+        public bool IsInitialized { get; private set; }
+        public event Action OnInitialized;
         public int CameraModel { get; private set; }
         public int LastVendorCode { get; private set; }
         public string LastError { get; private set; } = string.Empty;
@@ -100,6 +102,8 @@ namespace ASJ
                 }
                 SdkVersion = ASJNative.ReadAnsi(ASJNative.ASJ_GetSdkVersion);
                 Debug.Log($"[ASJ] SDK ready: {SdkVersion}; waiting for camera frames.");
+                IsInitialized = true;
+                OnInitialized?.Invoke();
             }
             if (ASJNative.ASJ_GetStatus(out var status) == 0)
             {
