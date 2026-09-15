@@ -40,6 +40,8 @@ namespace ASJ
         public bool backOfHandView;
         [Tooltip("Estimate relative forward/back movement from apparent palm size. RGB estimate only, not measured depth.")]
         public bool estimateForwardMotion;
+        [Tooltip("Reverse only whole-hand forward/back movement, independently of the back-of-hand pose and left/right motion.")]
+        public bool invertForwardMotion;
         [Min(0)] public float forwardSensitivity = .6f;
         [Min(0)] public float forwardLimit = .8f;
         public string Status { get; private set; } = "Starting";
@@ -352,8 +354,7 @@ namespace ASJ
                         ? HandSkeletonViewMath.RelativeForward(referencePalmSize[slot], palmSize, forwardSensitivity, forwardLimit) : 0;
                     for (int j = 0; j < 21; j++)
                     {
-                        Vector3 position = sourcePose[j] + new Vector3(0, 0, forward);
-                        targets[slot, j] = backOfHandView ? HandSkeletonViewMath.BackView(position) : position;
+                        targets[slot, j] = HandSkeletonViewMath.MapPose(sourcePose[j], forward, backOfHandView, invertForwardMotion);
                         if (!wasVisible) joints[slot, j].localPosition = targets[slot, j];
                     }
                 }

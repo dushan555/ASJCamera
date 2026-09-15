@@ -306,9 +306,9 @@
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Protobuf\Calculators\Image\RotationMode.cs" />
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Unity\Annotation\HolisticLandmarkListAnnotation.cs" />
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Util\GlobalInstanceTable.cs" />
-    <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Protobuf\Calculators\Util\TopKScoresCalculator.cs" />
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Framework\PacketValidatorExtension.cs" />
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Protobuf\Calculators\Core\SequenceShiftCalculator.cs" />
+    <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Protobuf\Calculators\Util\TopKScoresCalculator.cs" />
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Protobuf\Calculators\Util\PacketLatencyCalculator.cs" />
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Tasks\Core\TaskRunner.cs" />
     <Compile Include="Packages\com.github.homuler.mediapipe\Runtime\Scripts\Protobuf\Calculators\Video\BoxTrackerCalculator.cs" />

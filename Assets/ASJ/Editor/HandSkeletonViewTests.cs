@@ -22,6 +22,15 @@ public static class HandSkeletonViewTests
             "Pinch/bone distance changed");
         Check(mapped.x == -thumb.x && mapped.z == -thumb.z && mapped.y == thumb.y, "Opposite-side pose incorrect");
         float forward = HandSkeletonViewMath.RelativeForward(.2f, .3f, .6f, .8f);
+        foreach (bool back in new[] { false, true })
+        {
+            var origin = HandSkeletonViewMath.MapPose(thumb, 0, back, false);
+            var normal = HandSkeletonViewMath.MapPose(thumb, forward, back, false);
+            var inverted = HandSkeletonViewMath.MapPose(thumb, forward, back, true);
+            Equal(normal - origin, -(inverted - origin), "Independent forward inversion failed");
+            Check(normal.x == inverted.x && normal.y == inverted.y, "Forward inversion changed sideways/up movement");
+            Equal(HandSkeletonViewMath.MapPose(thumb, 0, back, true), origin, "Forward inversion changed the hand pose");
+        }
         Check((HandSkeletonViewMath.BackView(thumb + new Vector3(0, 0, forward)) - mapped).z > 0,
             "Estimated forward motion must also reverse in back view");
         Check(HandSkeletonViewMath.RelativeForward(.2f, .3f, .6f, .8f) < 0, "Approaching hand must move toward viewer");

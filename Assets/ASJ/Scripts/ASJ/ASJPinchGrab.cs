@@ -46,7 +46,7 @@ namespace ASJ
         Camera renderingCamera;
         Matrix4x4 savedProjection;
         bool savedInvertCulling, restoreAutomaticProjection;
-        bool lastBackView, lastForwardMotion;
+        bool lastBackView, lastForwardMotion, lastInvertForward;
 
         private GameObject tipObj;
         
@@ -59,6 +59,7 @@ namespace ASJ
             for(int i=0;i<2;i++) hands[i] = new HandState();
             lastBackView = tracker && tracker.backOfHandView;
             lastForwardMotion = tracker && tracker.estimateForwardMotion;
+            lastInvertForward = tracker && tracker.invertForwardMotion;
             Camera.onPreCull -= BeginSceneMirror;
             Camera.onPreCull += BeginSceneMirror;
             Camera.onPostRender -= EndSceneMirror;
@@ -114,12 +115,14 @@ namespace ASJ
 
         void LateUpdate()
         {
-            if (tracker && (lastBackView != tracker.backOfHandView || lastForwardMotion != tracker.estimateForwardMotion))
+            if (tracker && (lastBackView != tracker.backOfHandView || lastForwardMotion != tracker.estimateForwardMotion
+                || lastInvertForward != tracker.invertForwardMotion))
             {
                 Release();
                 for (int i = 0; i < 2; i++) hands[i] = new HandState();
                 lastBackView = tracker.backOfHandView;
                 lastForwardMotion = tracker.estimateForwardMotion;
+                lastInvertForward = tracker.invertForwardMotion;
                 return;
             }
             UpdateMirrorPreview();
