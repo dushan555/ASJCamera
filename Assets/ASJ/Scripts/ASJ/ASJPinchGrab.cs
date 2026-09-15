@@ -37,7 +37,7 @@ namespace ASJ
         sealed class HandState
         {
             public bool closed, eligible, armed;
-            public float closeSince, openSince = -1, lostSince = -1;
+            public float closeSince = -1, openSince = -1, lostSince = -1;
         }
         readonly HandState[] hands = { new HandState(), new HandState() };
         Collider[] colliders;
@@ -85,13 +85,18 @@ namespace ASJ
             var index=tracker.GetJoint(slot==0,8);
             var a=tracker.GetJoint(slot==0,5);
             var b=tracker.GetJoint(slot==0,17);
-            if(!thumb || !index || !a || !b || !thumb.gameObject.activeInHierarchy) return false;
+            if(!thumb || !index || !a || !b || !thumb.gameObject.activeInHierarchy
+                || !index.gameObject.activeInHierarchy || !a.gameObject.activeInHierarchy
+                || !b.gameObject.activeInHierarchy) return false;
             float width=Vector3.Distance(a.localPosition,b.localPosition);
-            if(width < .015f) return false;
+            if(!IsFinite(width) || width < .015f) return false;
             ratio=Vector3.Distance(thumb.localPosition,index.localPosition)/width;
             position=(thumb.position+index.position)*.5f;
-            return !float.IsNaN(ratio) && !float.IsInfinity(ratio);
+            return !float.IsNaN(ratio) && !float.IsInfinity(ratio)
+                && IsFinite(position.x) && IsFinite(position.y) && IsFinite(position.z);
         }
+
+        static bool IsFinite(float value) { return !float.IsNaN(value) && !float.IsInfinity(value); }
 
         bool Near(Vector3 position)
         {
@@ -128,6 +133,12 @@ namespace ASJ
 
         void LateUpdate()
         {
+            UpdateGrab(Time.unscaledTime);
+        }
+
+        // Explicit time also lets editor verification exercise timers without waiting.
+        void UpdateGrab(float now)
+        {
             if (tracker && (lastBackView != tracker.backOfHandView || lastForwardMotion != tracker.estimateForwardMotion
                 || lastInvertForward != tracker.invertForwardMotion))
             {
@@ -140,8 +151,13 @@ namespace ASJ
                 return;
             }
             UpdateMirrorPreview();
-            if(!target || !target.gameObject.activeInHierarchy) { Release(); SetHovering(false); return; }
-            float now=Time.unscaledTime;
+            if(!target || !target.gameObject.activeInHierarchy)
+            {
+                Release();
+                SetHovering(false);
+                foreach (var hand in hands) ResetGesture(hand);
+                return;
+            }
             bool anyNear=false;
             for(int slot=0;slot<2;slot++)
             {
@@ -151,16 +167,19 @@ namespace ASJ
                 {
                     if(hand.lostSince<0) hand.lostSince=now;
                     if(owner==slot && ((tracker && tracker.estimateForwardMotion) || now-hand.lostSince>=trackingLossSeconds)) Release();
-                    hand.armed=false; hand.eligible=false; hand.closed=false;
+                    ResetGesture(hand);
                     continue;
                 }
                 hand.lostSince=-1;
                 bool near=Near(position); anyNear |= near;
+                // Leaving the target cancels this pinch attempt; reopening is required.
+                if (!near) { hand.eligible=false; hand.closeSince=-1; }
                 if(ratio>=Mathf.Max(pinchOpenRatio,pinchCloseRatio+.05f))
                 {
                     hand.armed=true;
                     hand.closed=false;
                     hand.eligible=false;
+                    hand.closeSince=-1;
                     if(hand.openSince<0) hand.openSince=now;
                     if(owner==slot && now-hand.openSince>=releaseSeconds) Release();
                 }
@@ -169,14 +188,22 @@ namespace ASJ
                     hand.openSince=-1;
                     if(!hand.closed)
                     {
-                        hand.closed=true; hand.closeSince=now;
+                        hand.closed=true;
                         hand.eligible=hand.armed && near && owner<0;
                         hand.armed=false;
                     }
-                    if(owner<0 && hand.eligible && near && now-hand.closeSince>=confirmSeconds)
-                        Grab(slot,position);
+                    if(owner<0 && hand.eligible && near)
+                    {
+                        if (hand.closeSince<0) hand.closeSince=now;
+                        if (now-hand.closeSince>=Mathf.Max(0,confirmSeconds)) Grab(slot,position);
+                    }
                 }
-                else hand.openSince=-1;
+                else
+                {
+                    // The hysteresis band preserves the gesture, but not confirmation time.
+                    hand.openSince=-1;
+                    hand.closeSince=-1;
+                }
 
                 if(owner==slot)
                 {
@@ -210,12 +237,23 @@ namespace ASJ
             else onHoverExit.Invoke();
         }
 
+        static void ResetGesture(HandState hand)
+        {
+            hand.armed=false;
+            hand.eligible=false;
+            hand.closed=false;
+            hand.closeSince=-1;
+            hand.openSince=-1;
+        }
+
         void Grab(int slot,Vector3 position)
         {
             owner=slot; handAtGrab=position; targetAtGrab=target.position;
             handRotAtGrab=SamplePalmRotation(slot); targetRotAtGrab=target.rotation;
             if(body) { wasKinematic=body.isKinematic; usedGravity=body.useGravity; body.isKinematic=true; body.useGravity=false; }
             GrabCount++;
+            // No pending attempt may survive a grab or a later external Release().
+            foreach (var hand in hands) { hand.eligible=false; hand.closeSince=-1; }
             SetHovering(false);
             Debug.Log("[ASJ Grab] Grabbed target with "+(slot==0?"Left":"Right")+" hand.",this);
             onGrab.Invoke();

@@ -9,9 +9,16 @@ public static class ASJGrabVerification
     static ASJGrabVerification() { EditorApplication.delayCall+=Run; }
     static void Check(bool value,string message) { if(!value) throw new Exception(message); }
     static void Call(object obj,string method) { obj.GetType().GetMethod(method,BindingFlags.Instance|BindingFlags.NonPublic).Invoke(obj,null); }
+    static void Tick(ASJ.ASJPinchGrab grab) { typeof(ASJ.ASJPinchGrab).GetMethod("UpdateGrab",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(grab,new object[] { 10f }); }
+    [MenuItem("ASJ/Verify Pinch Grab")]
+    public static void RunManually()
+    {
+        SessionState.SetBool("ASJGrabVerifiedV2",false);
+        Run();
+    }
     static void Run()
     {
-        if(EditorApplication.isPlayingOrWillChangePlaymode || SessionState.GetBool("ASJGrabVerified",false)) return;
+        if(EditorApplication.isPlayingOrWillChangePlaymode || SessionState.GetBool("ASJGrabVerifiedV2",false)) return;
         GameObject root=new GameObject("Grab verification") {hideFlags=HideFlags.HideAndDontSave};
         try
         {
@@ -25,7 +32,7 @@ public static class ASJGrabVerification
             Action<float,float> pose=(x,gap)=> {
                 joints[0,5].localPosition=new Vector3(x-.1f,0,0); joints[0,17].localPosition=new Vector3(x+.1f,0,0);
                 joints[0,4].localPosition=new Vector3(x-gap*.5f,0,0); joints[0,8].localPosition=new Vector3(x+gap*.5f,0,0);
-                Call(grab,"LateUpdate");
+                Tick(grab);
             };
             pose(.05f,.2f); pose(.05f,.02f);
             Check(grab.IsHolding,"near pinch should grab"); Check(target.transform.position.sqrMagnitude<1e-6,"grab must not snap target");
@@ -33,9 +40,40 @@ public static class ASJGrabVerification
             pose(.25f,.2f); Check(!grab.IsHolding,"open fingers must release");
             pose(2,.2f); pose(2,.02f); pose(.2f,.02f); Check(!grab.IsHolding,"closed hand entering target must not auto-grab");
             pose(.2f,.2f); pose(.2f,.02f); Check(grab.IsHolding,"reopening rearms grab");
-            joints[0,4].gameObject.SetActive(false); Call(grab,"LateUpdate"); Check(!grab.IsHolding,"tracking loss must release");
-            SessionState.SetBool("ASJGrabVerified",true);
-            Debug.Log("[ASJ Grab Test] PASS: acquire, no snap, relative move, release, outside-pinch rejection, rearm, tracking-loss release.");
+            joints[0,4].gameObject.SetActive(false); Tick(grab); Check(!grab.IsHolding,"tracking loss must release");
+            joints[0,4].gameObject.SetActive(true);
+            var hand=((Array)typeof(ASJ.ASJPinchGrab).GetField("hands",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(grab)).GetValue(0);
+            Action<string,float> setTimer=(name,value)=>hand.GetType().GetField(name).SetValue(hand,value);
+            Func<string,float> timer=name=>(float)hand.GetType().GetField(name).GetValue(hand);
+            grab.confirmSeconds=.1f;
+            pose(.2f,.2f); pose(.2f,.02f);
+            setTimer("closeSince",9f);
+            pose(.2f,.08f); // Ratio .4: between close and open thresholds.
+            pose(.2f,.02f);
+            Check(!grab.IsHolding,"hysteresis band must restart continuous close confirmation");
+            setTimer("closeSince",9f);
+            pose(2,.02f); pose(.2f,.02f);
+            Check(!grab.IsHolding,"leaving range must cancel the pending pinch");
+            pose(.2f,.2f); pose(.2f,.02f);
+            setTimer("closeSince",9f); pose(.2f,.02f);
+            Check(grab.IsHolding,"continuous close confirmation must acquire");
+            grab.Release(); pose(.2f,.02f);
+            Check(!grab.IsHolding,"external release must not reuse the previous pinch");
+            grab.confirmSeconds=0;
+            pose(.2f,.2f); pose(.2f,.02f);
+            grab.releaseSeconds=.1f; grab.trackingLossSeconds=10;
+            tracker.estimateForwardMotion=false;
+            pose(.2f,.2f);
+            setTimer("openSince",9f);
+            joints[0,8].gameObject.SetActive(false); Tick(grab);
+            Check(grab.IsHolding,"brief loss should preserve holding during grace period");
+            Check(timer("openSince")<0,"tracking loss must clear release confirmation");
+            joints[0,8].gameObject.SetActive(true); pose(.2f,.2f);
+            Check(grab.IsHolding,"release must require continuous open samples after recovery");
+            setTimer("openSince",9f); pose(.2f,.2f);
+            Check(!grab.IsHolding,"continuous open confirmation must release");
+            SessionState.SetBool("ASJGrabVerifiedV2",true);
+            Debug.Log("[ASJ Grab Test] PASS: acquire, no snap, relative move, release, outside-pinch rejection, rearm, tracking loss, continuous confirmation, range cancellation, external release.");
         }
         catch(Exception ex) { Debug.LogError("[ASJ Grab Test] FAIL: "+ex); }
         finally { UnityEngine.Object.DestroyImmediate(root); }
