@@ -569,6 +569,12 @@ MonoBehaviour:
   confirmSeconds: 0.1
   releaseSeconds: 0.08
   trackingLossSeconds: 0.25
+  onHoverEnter:
+    m_PersistentCalls:
+      m_Calls: []
+  onHoverExit:
+    m_PersistentCalls:
+      m_Calls: []
   onGrab:
     m_PersistentCalls:
       m_Calls: []

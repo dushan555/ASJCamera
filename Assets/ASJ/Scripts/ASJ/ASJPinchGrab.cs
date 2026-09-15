@@ -22,8 +22,13 @@ namespace ASJ
         public float confirmSeconds = .1f;
         public float releaseSeconds = .08f;
         public float trackingLossSeconds = .25f;
+        [Tooltip("Invoked when a tracked hand enters grab range while the target is not held.")]
+        public UnityEvent onHoverEnter = new UnityEvent();
+        [Tooltip("Invoked when all hands leave grab range, tracking is lost, or grabbing starts.")]
+        public UnityEvent onHoverExit = new UnityEvent();
         public UnityEvent onGrab = new UnityEvent();
         public UnityEvent onRelease = new UnityEvent();
+        public bool IsHovering { get; private set; }
         public bool IsHolding { get { return owner >= 0; } }
         public string Status { get; private set; } = "Move hand near target, then pinch";
         public int GrabCount { get; private set; }
@@ -49,6 +54,8 @@ namespace ASJ
         bool lastBackView, lastForwardMotion, lastInvertForward;
 
         private GameObject tipObj;
+        private Material tipMat;
+        
         
         void OnEnable()
         {
@@ -103,13 +110,19 @@ namespace ASJ
         {
             var tip = target ? target.Find("tip") : null;
             tipObj = tip ? tip.gameObject : null;
+            if (tipObj)
+            {
+                tipMat = tipObj.GetComponent<Renderer>().material;
+            }
         }
 
         private void Update()
         {
             if (tipObj)
             {
-                tipObj.SetActive(IsHolding);
+                tipObj.SetActive(IsHovering || IsHolding);
+                tipMat.color = IsHolding ? Color.green : Color.yellow;
+                //tipObj.GetComponent<Renderer>().material = tipMat;
             }
         }
 
@@ -119,6 +132,7 @@ namespace ASJ
                 || lastInvertForward != tracker.invertForwardMotion))
             {
                 Release();
+                SetHovering(false);
                 for (int i = 0; i < 2; i++) hands[i] = new HandState();
                 lastBackView = tracker.backOfHandView;
                 lastForwardMotion = tracker.estimateForwardMotion;
@@ -126,7 +140,7 @@ namespace ASJ
                 return;
             }
             UpdateMirrorPreview();
-            if(!target || !target.gameObject.activeInHierarchy) { Release(); return; }
+            if(!target || !target.gameObject.activeInHierarchy) { Release(); SetHovering(false); return; }
             float now=Time.unscaledTime;
             bool anyNear=false;
             for(int slot=0;slot<2;slot++)
@@ -183,8 +197,17 @@ namespace ASJ
                     }
                 }
             }
+            SetHovering(!IsHolding && anyNear);
             Status=IsHolding ? (owner==0?"Left":"Right")+" hand holding - open fingers to release"
                 : anyNear ? "Target in reach - pinch thumb + index" : "Move hand near target, then pinch";
+        }
+
+        void SetHovering(bool hovering)
+        {
+            if (IsHovering == hovering) return;
+            IsHovering = hovering;
+            if (hovering) onHoverEnter.Invoke();
+            else onHoverExit.Invoke();
         }
 
         void Grab(int slot,Vector3 position)
@@ -193,6 +216,7 @@ namespace ASJ
             handRotAtGrab=SamplePalmRotation(slot); targetRotAtGrab=target.rotation;
             if(body) { wasKinematic=body.isKinematic; usedGravity=body.useGravity; body.isKinematic=true; body.useGravity=false; }
             GrabCount++;
+            SetHovering(false);
             Debug.Log("[ASJ Grab] Grabbed target with "+(slot==0?"Left":"Right")+" hand.",this);
             onGrab.Invoke();
         }
@@ -295,6 +319,7 @@ namespace ASJ
         void OnDisable()
         {
             Release();
+            SetHovering(false);
             if (mirroredPreview) mirroredPreview.localScale = previewScale;
             mirroredPreview = null;
             if (renderingCamera) EndSceneMirror(renderingCamera);
