@@ -37,6 +37,24 @@ public static class HandSkeletonViewTests
         Check(HandSkeletonViewMath.RelativeForward(.2f, .1f, .6f, .8f) > 0, "Receding hand must move away");
         Check(HandSkeletonViewMath.RelativeForward(.2f, .2f, .6f, .8f) == 0, "Reference pose must have zero offset");
         Check(HandSkeletonViewMath.RelativeForward(.2f, .001f, .6f, .8f) <= .8f, "Forward travel limit exceeded");
+        var wrist = Vector3.zero;
+        var indexMcp = new Vector3(.03f,.07f,0);
+        var pinkyMcp = new Vector3(-.03f,.05f,0);
+        foreach (float angle in new[] { 0f, 45f, 80f })
+        {
+            float radians = angle * (float)Math.PI / 180f;
+            var a = new Vector3(indexMcp.x*(float)Math.Cos(radians),indexMcp.y,indexMcp.x*(float)Math.Sin(radians));
+            var b = new Vector3(pinkyMcp.x*(float)Math.Cos(radians),pinkyMcp.y,pinkyMcp.x*(float)Math.Sin(radians));
+            foreach (float expectedScale in new[] { 2f, 4f })
+            {
+                float scale;
+                Check(HandSkeletonViewMath.TryPalmScale(wrist,a*expectedScale,b*expectedScale,wrist,a,b,out scale),"Valid palm scale rejected");
+                Check(Math.Abs(scale-expectedScale)<1e-5f,"Palm rotation changed depth scale");
+            }
+        }
+        float invalidScale;
+        Check(!HandSkeletonViewMath.TryPalmScale(wrist,indexMcp,pinkyMcp,wrist,wrist,wrist,out invalidScale),"Degenerate palm must not update depth");
+        Check(!HandSkeletonViewMath.TryPalmScale(wrist,new Vector3(float.NaN,0,0),pinkyMcp,wrist,indexMcp,pinkyMcp,out invalidScale),"Invalid landmarks must not update depth");
         return "PASS: whole-position X/Z reversal, upright Y, all six movement directions, unchanged pinch/bone distances, reversed estimated forward motion and limit.";
     }
 }

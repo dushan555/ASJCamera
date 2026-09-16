@@ -13,12 +13,12 @@ public static class ASJGrabVerification
     [MenuItem("ASJ/Verify Pinch Grab")]
     public static void RunManually()
     {
-        SessionState.SetBool("ASJGrabVerifiedV2",false);
+        SessionState.SetBool("ASJGrabVerifiedV3",false);
         Run();
     }
     static void Run()
     {
-        if(EditorApplication.isPlayingOrWillChangePlaymode || SessionState.GetBool("ASJGrabVerifiedV2",false)) return;
+        if(EditorApplication.isPlayingOrWillChangePlaymode || SessionState.GetBool("ASJGrabVerifiedV3",false)) return;
         GameObject root=new GameObject("Grab verification") {hideFlags=HideFlags.HideAndDontSave};
         try
         {
@@ -72,7 +72,15 @@ public static class ASJGrabVerification
             Check(grab.IsHolding,"release must require continuous open samples after recovery");
             setTimer("openSince",9f); pose(.2f,.2f);
             Check(!grab.IsHolding,"continuous open confirmation must release");
-            SessionState.SetBool("ASJGrabVerifiedV2",true);
+            tracker.estimateForwardMotion=true;
+            Tick(grab); // Apply the view-setting reset before arming a new grab.
+            pose(.2f,.2f); pose(.2f,.02f);
+            Check(grab.IsHolding,"forward estimation should allow grabbing");
+            joints[0,4].gameObject.SetActive(false); Tick(grab);
+            Check(grab.IsHolding,"forward estimation must respect tracking-loss grace period");
+            setTimer("lostSince",0f); Tick(grab);
+            Check(!grab.IsHolding,"forward estimation must release after tracking-loss timeout");
+            SessionState.SetBool("ASJGrabVerifiedV3",true);
             Debug.Log("[ASJ Grab Test] PASS: acquire, no snap, relative move, release, outside-pinch rejection, rearm, tracking loss, continuous confirmation, range cancellation, external release.");
         }
         catch(Exception ex) { Debug.LogError("[ASJ Grab Test] FAIL: "+ex); }

@@ -166,7 +166,7 @@ namespace ASJ
                 if(!Sample(slot,out position,out ratio))
                 {
                     if(hand.lostSince<0) hand.lostSince=now;
-                    if(owner==slot && ((tracker && tracker.estimateForwardMotion) || now-hand.lostSince>=trackingLossSeconds)) Release();
+                    if(owner==slot && now-hand.lostSince>=Mathf.Max(0,trackingLossSeconds)) Release();
                     ResetGesture(hand);
                     continue;
                 }
