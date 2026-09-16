@@ -563,12 +563,12 @@ MonoBehaviour:
   target: {fileID: 858613193}
   mirrorHorizontal: 0
   sceneCamera: {fileID: 0}
-  grabDistance: 0.08
+  grabDistance: 1.08
   pinchCloseRatio: 0.32
   pinchOpenRatio: 0.55
   confirmSeconds: 0.1
   releaseSeconds: 0.08
-  trackingLossSeconds: 0.25
+  trackingLossSeconds: 1.25
   onHoverEnter:
     m_PersistentCalls:
       m_Calls: []
