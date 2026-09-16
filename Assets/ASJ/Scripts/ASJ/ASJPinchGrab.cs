@@ -16,6 +16,7 @@ namespace ASJ
         public ASJHandJointTracker tracker;
         // 抓取目标；未指定时使用当前物体。
         public Transform target;
+        public Material normalMat, hoverMat, holdMat;
         [Tooltip("Mirror the RGB/hand overlay and the 3D scene together. Tracking and grabbing remain in the same world space.")]
         // 同时镜像预览和场景画面，不改变抓取的世界坐标。
         public bool mirrorHorizontal;
@@ -52,6 +53,8 @@ namespace ASJ
         public int GrabCount { get; private set; }
         public int ReleaseCount { get; private set; }
 
+        //private Color holdColor, hoverColor;
+        
         // 每只手独立维护手势状态和计时。
         sealed class HandState
         {
@@ -82,8 +85,13 @@ namespace ASJ
 
         private GameObject tipObj;
         private Material tipMat;
-        
-        
+
+        private void Awake()
+        {
+            // holdColor = AlphaColor(Color.green);
+            // hoverColor = AlphaColor(Color.yellow);
+        }
+
         // 初始化依赖并订阅内置渲染管线和 SRP 的相机回调。
         void OnEnable()
         {
@@ -156,23 +164,21 @@ namespace ASJ
         // 获取目标下名为 tip 的提示物体及独立材质实例。
         private void Start()
         {
-            var tip = target ? target.Find("tip") : null;
-            tipObj = tip ? tip.gameObject : null;
-            if (tipObj)
+            RefreshMat(normalMat);
+        }
+
+        private void RefreshMat(Material mat)
+        {
+            var renderers = target.GetComponentsInChildren<Renderer>();
+            foreach (var r in renderers)
             {
-                tipMat = tipObj.GetComponent<Renderer>().material;
+                r.material = mat;
             }
         }
 
-        private void Update()
+        public Color AlphaColor(Color color, float alpha = 0.3f)
         {
-            if (tipObj)
-            {
-                // 悬停时显示黄色，持有时显示绿色，其余时间隐藏。
-                tipObj.SetActive(IsHovering || IsHolding);
-                tipMat.color = IsHolding ? Color.green : Color.yellow;
-                //tipObj.GetComponent<Renderer>().material = tipMat;
-            }
+            return new Color(color.r, color.g, color.b, alpha);
         }
 
         void LateUpdate()
@@ -230,7 +236,7 @@ namespace ASJ
                 //     hand.eligible=false; hand.closeSince=-1;
                 // }
                 // 张开阈值至少比闭合阈值大 0.05，确保存在滞回区间。
-                if(ratio>=Mathf.Max(pinchOpenRatio,pinchCloseRatio+.5f))
+                if(ratio>=Mathf.Max(pinchOpenRatio,pinchCloseRatio+.75f))
                 {
                     hand.armed=true;
                     hand.closed=false;
@@ -292,6 +298,7 @@ namespace ASJ
         {
             if (IsHovering == hovering) return;
             IsHovering = hovering;
+            RefreshMat(hovering ? hoverMat : normalMat);
             if (hovering) onHoverEnter.Invoke();
             else onHoverExit.Invoke();
         }
@@ -317,6 +324,7 @@ namespace ASJ
             foreach (var hand in hands) { hand.eligible=false; hand.closeSince=-1; }
             SetHovering(false);
             Debug.Log("[ASJ Grab] Grabbed target with "+(slot==0?"Left":"Right")+" hand.",this);
+            RefreshMat(holdMat);
             onGrab.Invoke();
         }
 
