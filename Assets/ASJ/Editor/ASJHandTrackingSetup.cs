@@ -29,7 +29,7 @@ public static class ASJHandTrackingSetup
         if(!tracker) tracker=Undo.AddComponent<ASJ.ASJHandJointTracker>(source.gameObject);
         Undo.RecordObject(tracker,"Configure ASJ joint tracking");
         tracker.cameraSource=source; tracker.rgbView=rgb;
-        tracker.sphereShader=Shader.Find("ASJ/JointSphere");
+        tracker.handMaterial = new Material(Shader.Find("ASJ/JointSphere"));
         var cameraData=new SerializedObject(source); cameraData.FindProperty("updateRgbTexture").boolValue=true; cameraData.ApplyModifiedProperties();
         EditorUtility.SetDirty(tracker);
         EditorSceneManager.MarkSceneDirty(source.gameObject.scene);

@@ -2158,9 +2158,9 @@ MonoBehaviour:
   cameraSource: {fileID: 1865721771}
   webcamSource: {fileID: 1865721776}
   rgbView: {fileID: 839423667}
-  sphereShader: {fileID: 4800000, guid: edec90d3c3af0ea43abefd3f4c2155f1, type: 3}
+  handMaterial: {fileID: 2100000, guid: 95a46e92601893e4d9f9cc9870ff9aea, type: 2}
   inferenceFps: 15
-  sphereDiameter: 0.025
+  sphereDiameter: 0.12
   smoothing: 18
   lostTimeout: 0.4
   drawBones: 1

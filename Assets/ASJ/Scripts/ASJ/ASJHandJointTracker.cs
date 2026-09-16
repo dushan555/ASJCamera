@@ -32,11 +32,13 @@ namespace ASJ
         public WebcamRgbSource webcamSource;
         // RGB 预览和骨架球体使用的着色器。
         public RawImage rgbView;
-        public Shader sphereShader;
+        //public Shader sphereShader;
+        public Material handMaterial;
+        
         // 向后台提交图像的最大频率；实际识别速度还取决于推理耗时。
         [Range(1, 30)] public int inferenceFps = 15;
         // 关节球体的直径，单位为骨架局部坐标单位。
-        [Range(.005f, .08f)] public float sphereDiameter = .025f;
+        [Range(.005f, .58f)] public float sphereDiameter = .025f;
         // 指数平滑速度；为 0 时直接应用最新关节位置。
         [Range(0, 30)] public float smoothing = 18;
         // 超过此秒数未收到结果时隐藏骨架。
@@ -139,7 +141,7 @@ namespace ASJ
             if (inputSource == InputSource.ASJ && !cameraSource) cameraSource = FindObjectOfType<ASJCamera>();
             if (inputSource == InputSource.Webcam && !webcamSource) webcamSource = FindObjectOfType<WebcamRgbSource>();
             bool sourceAssigned = inputSource == InputSource.ASJ ? cameraSource != null : webcamSource != null;
-            if (!sourceAssigned || !rgbView || !sphereShader)
+            if (!sourceAssigned || !rgbView || !handMaterial)
             {
                 Status = "Assign the selected camera source, rgbView and sphereShader";
                 Debug.LogError("[ASJ Hand] " + Status);
@@ -513,8 +515,8 @@ namespace ASJ
 
             for (int h = 0; h < 2; h++)
             {
-                materials[h]       = new Material(sphereShader);
-                materials[h].color = h == 0 ? new Color(.15f, 1f, .55f) : new Color(1f, .5f, .1f);
+                materials[h] = handMaterial;//new Material(sphereShader);
+                //materials[h].color = h == 0 ? new Color(.15f, 1f, .55f) : new Color(1f, .5f, .1f);
                 handRoots[h]       = new GameObject(h == 0 ? "LeftHand_21Joints" : "RightHand_21Joints");
                 handRoots[h].transform.SetParent(JointRoot, false);
 
