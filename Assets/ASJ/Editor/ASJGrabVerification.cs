@@ -13,12 +13,12 @@ public static class ASJGrabVerification
     [MenuItem("ASJ/Verify Pinch Grab")]
     public static void RunManually()
     {
-        SessionState.SetBool("ASJGrabVerifiedV3",false);
+        SessionState.SetBool("ASJGrabVerifiedV4",false);
         Run();
     }
     static void Run()
     {
-        if(EditorApplication.isPlayingOrWillChangePlaymode || SessionState.GetBool("ASJGrabVerifiedV3",false)) return;
+        if(EditorApplication.isPlayingOrWillChangePlaymode || SessionState.GetBool("ASJGrabVerifiedV4",false)) return;
         GameObject root=new GameObject("Grab verification") {hideFlags=HideFlags.HideAndDontSave};
         try
         {
@@ -29,9 +29,11 @@ public static class ASJGrabVerification
             var grab=target.AddComponent<ASJ.ASJPinchGrab>(); grab.tracker=tracker; grab.target=target.transform;
             grab.confirmSeconds=0; grab.releaseSeconds=0; grab.trackingLossSeconds=0; grab.grabDistance=.1f;
             Call(grab,"OnEnable");
+            int pinchTip=8;
             Action<float,float> pose=(x,gap)=> {
                 joints[0,5].localPosition=new Vector3(x-.1f,0,0); joints[0,17].localPosition=new Vector3(x+.1f,0,0);
-                joints[0,4].localPosition=new Vector3(x-gap*.5f,0,0); joints[0,8].localPosition=new Vector3(x+gap*.5f,0,0);
+                for(int tip=8;tip<=20;tip+=4) joints[0,tip].localPosition=new Vector3(x,.4f,0);
+                joints[0,4].localPosition=new Vector3(x-gap*.5f,0,0); joints[0,pinchTip].localPosition=new Vector3(x+gap*.5f,0,0);
                 Tick(grab);
             };
             pose(.05f,.2f); pose(.05f,.02f);
@@ -80,7 +82,17 @@ public static class ASJGrabVerification
             Check(grab.IsHolding,"forward estimation must respect tracking-loss grace period");
             setTimer("lostSince",0f); Tick(grab);
             Check(!grab.IsHolding,"forward estimation must release after tracking-loss timeout");
-            SessionState.SetBool("ASJGrabVerifiedV3",true);
+            grab.confirmSeconds=0; grab.releaseSeconds=0;
+            for(int tip=8;tip<=20;tip+=4)
+            {
+                pinchTip=tip;
+                float x=target.transform.position.x;
+                pose(x,.2f); pose(x,.02f);
+                Check(grab.IsHolding,"thumb plus fingertip "+tip+" must grab");
+                pose(x,.2f);
+                Check(!grab.IsHolding,"opening fingertip "+tip+" must release");
+            }
+            SessionState.SetBool("ASJGrabVerifiedV4",true);
             Debug.Log("[ASJ Grab Test] PASS: acquire, no snap, relative move, release, outside-pinch rejection, rearm, tracking loss, continuous confirmation, range cancellation, external release.");
         }
         catch(Exception ex) { Debug.LogError("[ASJ Grab Test] FAIL: "+ex); }

@@ -16,7 +16,7 @@ namespace ASJ
         public Camera sceneCamera;
         [Tooltip("Distance in the hand preview's Unity units.")]
         public float grabDistance = .08f;
-        [Tooltip("Thumb/index distance divided by palm width.")]
+        [Tooltip("Minimum distance from the thumb tip to any other fingertip, divided by palm width.")]
         public float pinchCloseRatio = .32f;
         public float pinchOpenRatio = .55f;
         public float confirmSeconds = .1f;
@@ -82,16 +82,27 @@ namespace ASJ
             position=Vector3.zero; ratio=1;
             if(!tracker || !tracker.isActiveAndEnabled) return false;
             var thumb=tracker.GetJoint(slot==0,4);
-            var index=tracker.GetJoint(slot==0,8);
             var a=tracker.GetJoint(slot==0,5);
             var b=tracker.GetJoint(slot==0,17);
-            if(!thumb || !index || !a || !b || !thumb.gameObject.activeInHierarchy
-                || !index.gameObject.activeInHierarchy || !a.gameObject.activeInHierarchy
+            if(!thumb || !a || !b || !thumb.gameObject.activeInHierarchy
+                || !a.gameObject.activeInHierarchy
                 || !b.gameObject.activeInHierarchy) return false;
             float width=Vector3.Distance(a.localPosition,b.localPosition);
             if(!IsFinite(width) || width < .015f) return false;
-            ratio=Vector3.Distance(thumb.localPosition,index.localPosition)/width;
-            position=(thumb.position+index.position)*.5f;
+            float closestDistance=float.PositiveInfinity;
+            Transform closestTip=null;
+            // MediaPipe fingertips: index 8, middle 12, ring 16, pinky 20.
+            // Require a complete sample so a missing finger cannot falsely release a grab.
+            for(int joint=8;joint<=20;joint+=4)
+            {
+                var tip=tracker.GetJoint(slot==0,joint);
+                if(!tip || !tip.gameObject.activeInHierarchy) return false;
+                float distance=Vector3.Distance(thumb.localPosition,tip.localPosition);
+                if(!IsFinite(distance)) return false;
+                if(distance<closestDistance) { closestDistance=distance; closestTip=tip; }
+            }
+            ratio=closestDistance/width;
+            position=(thumb.position+closestTip.position)*.5f;
             return !float.IsNaN(ratio) && !float.IsInfinity(ratio)
                 && IsFinite(position.x) && IsFinite(position.y) && IsFinite(position.z);
         }
@@ -226,7 +237,7 @@ namespace ASJ
             }
             SetHovering(!IsHolding && anyNear);
             Status=IsHolding ? (owner==0?"Left":"Right")+" hand holding - open fingers to release"
-                : anyNear ? "Target in reach - pinch thumb + index" : "Move hand near target, then pinch";
+                : anyNear ? "Target in reach - pinch thumb + any fingertip" : "Move hand near target, then pinch";
         }
 
         void SetHovering(bool hovering)
