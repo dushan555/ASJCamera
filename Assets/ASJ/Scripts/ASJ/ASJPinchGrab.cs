@@ -74,6 +74,11 @@ namespace ASJ
         Quaternion handRotAtGrab, targetRotAtGrab;
         // 当前持有目标的手部槽位；-1 表示无人持有。
         int owner = -1;
+        int secondHand = -1;
+        readonly Vector3[] grabPoints = new Vector3[2];
+        float initialSpan;
+        Vector3 initialScale;
+        bool rebasePose;
         // 缓存镜像前的预览缩放、相机投影和剔除状态。
         Transform mirroredPreview;
         Vector3 previewScale;
@@ -219,14 +224,15 @@ namespace ASJ
                 {
                     // 短暂丢帧只重置手势；持有状态保留到追踪丢失超时。
                     if(hand.lostSince<0) hand.lostSince=now;
-                    if(owner==slot && now-hand.lostSince>=Mathf.Max(0,trackingLossSeconds))
+                    if((owner==slot || secondHand==slot) && now-hand.lostSince>=Mathf.Max(0,trackingLossSeconds))
                     {
                         Debug.Log("丢帧释放！！！");
-                        Release();
+                        ReleaseHand(slot);
                     }
                     ResetGesture(hand);
                     continue;
                 }
+                grabPoints[slot]=position;
                 hand.lostSince=-1;
                 bool near=Near(position); anyNear |= near;
                 // 离开范围会取消本次捏合资格，必须重新张开后才能再次尝试。
@@ -243,7 +249,7 @@ namespace ASJ
                     hand.eligible=false;
                     hand.closeSince=-1;
                     if(hand.openSince<0) hand.openSince=now;
-                    if(owner==slot && now-hand.openSince>=releaseSeconds) Release();
+                    if((owner==slot || secondHand==slot) && now-hand.openSince>=releaseSeconds) ReleaseHand(slot);
                 }
                 else if(ratio<=pinchCloseRatio)
                 {
@@ -251,14 +257,19 @@ namespace ASJ
                     if(!hand.closed)
                     {
                         hand.closed=true;
-                        // 只有先张开、再在范围内捏合且目标空闲时，才允许确认抓取。
-                        hand.eligible=hand.armed && near && owner<0;
+                        // 只有先张开、再在范围内捏合时，才允许确认抓取。
+                        hand.eligible=hand.armed && near;
                         hand.armed=false;
                     }
-                    if(owner<0 && hand.eligible && near)
+                    if(owner!=slot && secondHand!=slot && hand.eligible && near)
                     {
                         if (hand.closeSince<0) hand.closeSince=now;
-                        if (now-hand.closeSince>=Mathf.Max(0,confirmSeconds)) Grab(slot,position);
+                        if (now-hand.closeSince>=Mathf.Max(0,confirmSeconds))
+                        {
+                            hand.eligible=false;
+                            if(owner<0) Grab(slot,position);
+                            else { secondHand=slot; initialSpan=0; }
+                        }
                     }
                 }
                 else
@@ -268,8 +279,31 @@ namespace ASJ
                     hand.closeSince=-1;
                 }
 
-                if(owner==slot)
+            }
+            if(secondHand>=0 && hands[0].lostSince<0 && hands[1].lostSince<0)
+            {
+                float span=Vector3.Distance(grabPoints[0],grabPoints[1]);
+                const float minimumSpan=.005f;
+                if(initialSpan>=minimumSpan)
+                    target.localScale=initialScale*(Mathf.Max(span,minimumSpan)/initialSpan);
+                else if(span>=minimumSpan)
                 {
+                    initialSpan=span;
+                    initialScale=target.localScale;
+                }
+            }
+            if(owner>=0 && hands[owner].lostSince<0)
+            {
+                    int slot=owner;
+                    Vector3 position=grabPoints[slot];
+                    if(rebasePose)
+                    {
+                        handAtGrab=position;
+                        targetAtGrab=target.position;
+                        handRotAtGrab=SamplePalmRotation(slot);
+                        targetRotAtGrab=target.rotation;
+                        rebasePose=false;
+                    }
                     // 将相对抓取瞬间的手部位移和旋转增量应用到目标初始姿态。
                     Quaternion currentHandRot = SamplePalmRotation(slot);
                     Vector3 movement = position - handAtGrab;
@@ -286,10 +320,9 @@ namespace ASJ
                         target.position = desired;
                         target.rotation = desiredRot;
                     }
-                }
             }
             SetHovering(!IsHolding && anyNear);
-            Status=IsHolding ? (owner==0?"Left":"Right")+" hand holding - open fingers to release"
+            Status=secondHand>=0 ? "Two hands holding - move hands apart or together to scale" : IsHolding ? (owner==0?"Left":"Right")+" hand holding - open fingers to release"
                 : anyNear ? "Target in reach - pinch thumb + any fingertip" : "Move hand near target, then pinch";
         }
 
@@ -320,8 +353,6 @@ namespace ASJ
             handRotAtGrab=SamplePalmRotation(slot); targetRotAtGrab=target.rotation;
             if(body) { wasKinematic=body.isKinematic; usedGravity=body.useGravity; body.isKinematic=true; body.useGravity=false; }
             GrabCount++;
-            // 清除双手待确认的抓取，避免本次抓取或后续外部释放后残留旧尝试。
-            foreach (var hand in hands) { hand.eligible=false; hand.closeSince=-1; }
             SetHovering(false);
             Debug.Log("[ASJ Grab] Grabbed target with "+(slot==0?"Left":"Right")+" hand.",this);
             RefreshMat(holdMat);
@@ -347,10 +378,24 @@ namespace ASJ
         }
 
         /// <summary>释放目标，恢复抓取前的刚体配置并触发释放事件。</summary>
+        void ReleaseHand(int slot)
+        {
+            if(secondHand<0) { Release(); return; }
+            if(slot==owner)
+            {
+                owner=secondHand;
+                rebasePose=true;
+            }
+            secondHand=-1;
+        }
+
         public void Release()
         {
             if(owner<0) return;
             owner=-1;
+            secondHand=-1;
+            rebasePose=false;
+            foreach(var hand in hands) hand.eligible=false;
             if(body)
             {
                 body.isKinematic = wasKinematic;
